@@ -1,9 +1,161 @@
-import React from 'react';
+'use client';
 
-export default function page() {
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useFormContext } from 'react-hook-form';
+import { z } from 'zod';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { apiServices } from '@/services/api';
+import toast from 'react-hot-toast';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+
+export const formSchema = z
+  .object({
+    name: z.string().min(3, 'Name must be at least 3 characters'),
+    email: z.string().email('Invalid email address'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .max(32, "Password can't be longer than 32 characters"),
+    rePassword: z.string(),
+    phone: z.string().regex(/^01[0-9]{9}$/, 'Invalid Egyptian phone number'),
+  })
+  .refine((data) => data.password === data.rePassword, {
+    path: ['rePassword'],
+    message: "Passwords don't match",
+  });
+
+export default function Register() {
+  // ...
+  const [isLoading, setIsLoading] = useState(false);
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      rePassword: '',
+      phone: '',
+    },
+  });
+  const router = useRouter();
+  async function onSubmit(values: any) {
+    setIsLoading(true);
+    const response = await apiServices.register(
+      values.name,
+      values.email,
+      values.password,
+      values.rePassword,
+      values.phone
+    );
+    if (response.message == 'success') {
+      setIsLoading(false);
+      toast.success('Register Successful');
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 1000);
+    } else {
+      toast.error(response.message);
+      setIsLoading(false);
+    }
+  }
+
   return (
-    <div>
-      <h1>h1</h1>
+    <div className="max-w-2xl mx-auto my-20">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter Your Name" type="text" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="ex@email.com" type="email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input placeholder="**********" type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="rePassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>rePassword</FormLabel>
+                <FormControl>
+                  <Input placeholder="**********" type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter Your Phone"
+                    type="number"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-between">
+            <Button disabled={isLoading} className="bg-green-900" type="submit">
+              {isLoading ? <Loader2 className="animate-spin" /> : 'Register'}
+            </Button>
+            <Link href="/auth/login">
+              <Button variant="outline">Have Account</Button>
+            </Link>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

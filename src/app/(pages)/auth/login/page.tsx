@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 const formSchema = z.object({
   email: z.string(),
@@ -44,7 +45,7 @@ export default function ProfileForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto my-12">
+    <div className="max-w-2xl mx-auto my-20">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -54,7 +55,7 @@ export default function ProfileForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="e-Mail.com" type="email" {...field} />
+                  <Input placeholder="e-mail.com" type="email" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -71,7 +72,14 @@ export default function ProfileForm() {
               </FormItem>
             )}
           />
-          <Button type="submit">Submit</Button>
+          <div className="flex justify-between">
+            <Button className="bg-green-900" type="submit">
+              Submit
+            </Button>
+            <Link href="/auth/register">
+              <Button variant="outline">Create Account</Button>
+            </Link>
+          </div>
         </form>
       </Form>
     </div>

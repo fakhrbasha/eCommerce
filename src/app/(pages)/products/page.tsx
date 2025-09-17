@@ -18,7 +18,6 @@ export default function ProductsPage() {
   async function fetchProducts() {
     setLoading(true);
     const data: ProductsResponse = await apiServices.getAllProducts();
-    // console.log(data.data);
     setLoading(false);
     setProducts(data.data);
   }

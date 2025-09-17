@@ -7,6 +7,7 @@ import { GetUserCartResponse } from '@/interfaces';
 import { apiServices } from '@/services/api';
 import { Separator } from '@radix-ui/react-separator';
 import { Loader2, Trash2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import React, { useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -15,6 +16,7 @@ interface cartDataProp {
 }
 
 export default function InnerCart({ cartData }: cartDataProp) {
+  const { data } = useSession();
   const [innerCartData, setInnerCartData] =
     useState<GetUserCartResponse>(cartData);
   const [isCartClear, setIsCartClear] = useState(false);
@@ -22,7 +24,7 @@ export default function InnerCart({ cartData }: cartDataProp) {
   const { setCartCount } = useContext(CartContext);
 
   async function getNewCartItems() {
-    const newProductCart = await apiServices.getUserCart();
+    const newProductCart = await apiServices.getUserCart(data?.token!);
     setInnerCartData(newProductCart);
   }
   async function handleRemoveCartProduct(
@@ -30,7 +32,10 @@ export default function InnerCart({ cartData }: cartDataProp) {
     setIsRemovingProduct: (value: boolean) => void
   ) {
     setIsRemovingProduct(true);
-    const response = await apiServices.removeSpecificItem(productId);
+    const response = await apiServices.removeSpecificItem(
+      productId,
+      data?.token!
+    );
     getNewCartItems();
     // console.log(response);
     toast.success('Product removed from cart', { position: 'bottom-right' });
@@ -41,7 +46,11 @@ export default function InnerCart({ cartData }: cartDataProp) {
     count: number
   ) {
     // setIsUpdating(true);
-    const response = await apiServices.UpdateCartCount(productId, count);
+    const response = await apiServices.updateCartCount(
+      productId,
+      count,
+      data?.token!
+    );
     getNewCartItems();
     // setIsUpdating(false);
     // console.log(response);
@@ -49,7 +58,7 @@ export default function InnerCart({ cartData }: cartDataProp) {
 
   async function handleClearCart() {
     setIsCartClear(true);
-    const response = await apiServices.ClearCart();
+    const response = await apiServices.clearCart(data?.token!);
     getNewCartItems();
 
     toast.success('Cart cleared', { position: 'bottom-right' });
@@ -58,7 +67,7 @@ export default function InnerCart({ cartData }: cartDataProp) {
 
   async function handleCheckOut() {
     setIsCheckOut(true);
-    const response = await apiServices.checkout(cartData.cartId);
+    const response = await apiServices.checkout(cartData.cartId, data?.token!);
     setIsCheckOut(false);
     location.href = response.session.url;
   }
@@ -146,14 +155,14 @@ export default function InnerCart({ cartData }: cartDataProp) {
 
             <Button
               disabled={isCheckOut}
-              onClick={() => {
-                handleCheckOut();
-              }}
+              // onClick={() => {
+              //   handleCheckOut();
+              // }}
               className="w-full"
               size="lg"
             >
               {isCheckOut && <Loader2 className="animate-spin" />}
-              Proceed to Checkout
+              <Link href={'/address'}>Proceed to Checkout</Link>
             </Button>
 
             <Button variant="outline" className="w-full mt-2" asChild>

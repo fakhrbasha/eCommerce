@@ -4,32 +4,89 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/interfaces';
 import { Button } from '@/components/ui/button';
-import { Star, ShoppingCart, Heart } from 'lucide-react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { renderStars } from '@/helpers/rating';
 import { formatPrice } from '@/helpers/currency';
 import AddToCart from './AddToCart';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { apiServices } from '@/services/api';
 import toast from 'react-hot-toast';
 import { CartContext } from '@/contexts/CartContext';
+import { useSession } from 'next-auth/react';
 
 interface ProductCardProps {
   product: Product;
   viewMode?: 'grid' | 'list';
+  onWishlistChange?: () => void;
 }
 
-export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
+export function ProductCard({
+  product,
+  viewMode = 'grid',
+  onWishlistChange,
+}: ProductCardProps) {
   const [AddToCartLoading, setAddToCartLoading] = useState<boolean>(false);
   const { handleAddToCart } = useContext(CartContext);
+  const [inWishlist, setInWishlist] = useState(false);
+  const { data } = useSession();
 
-  // async function handleAddToCart() {
-  //   setAddToCartLoading(true);
-  //   const data = await apiServices.addProductToCart(product!._id);
-  //   setCartCount!(data.numOfCartItems);
-  //   toast.success(data.message);
-  //   setAddToCartLoading(false);
-  // }
+  async function toggleWishlist() {
+    try {
+      if (!data?.token) {
+        toast.error('You must be logged in to manage wishlist');
+        return;
+      }
 
+      if (inWishlist) {
+        const response = await apiServices.removeItemFormWishList(
+          data.token,
+          product._id
+        );
+
+        if (
+          response.status === 200 ||
+          response.status === 204 ||
+          response.status === 'success'
+        ) {
+          toast.success('Removed from Wish List');
+          onWishlistChange?.();
+          setInWishlist(false);
+        } else {
+          toast.error('Failed to remove from Wish List');
+        }
+      } else {
+        const response = await apiServices.addToWishList(
+          product.id,
+          data.token
+        );
+        if (response.status === 200) {
+          toast.success('Added to Wish List');
+          setInWishlist(true);
+        } else {
+          toast.error('Failed to add to Wish List');
+        }
+      }
+    } catch (err) {
+      toast.error('Something went wrong');
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    async function checkWishlist() {
+      if (!data?.token) return;
+      const wishlist = await apiServices.getAllWishList(data.token);
+      const exists = wishlist?.data?.some(
+        (item: any) =>
+          item._id === product._id || item.product?._id === product._id
+      );
+      setInWishlist(exists);
+    }
+
+    checkWishlist();
+  }, [data?.token, product._id]);
+
+  // ✅ List view
   if (viewMode === 'list') {
     return (
       <div className="flex gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow">
@@ -53,8 +110,12 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                 {product.title}
               </Link>
             </h3>
-            <Button variant="ghost" size="sm">
-              <Heart className="h-4 w-4" />
+            <Button onClick={toggleWishlist} variant="ghost" size="sm">
+              <Heart
+                className="h-5 w-5"
+                fill={inWishlist ? 'red' : 'none'}
+                stroke={inWishlist ? 'red' : 'currentColor'}
+              />
             </Button>
           </div>
 
@@ -69,7 +130,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                 ({product.ratingsQuantity})
               </span>
             </div>
-
             <span className="text-sm text-muted-foreground">
               {product.sold} sold
             </span>
@@ -102,7 +162,9 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
               </div>
             </div>
 
-            <Button>
+            <Button
+              onClick={() => handleAddToCart!(product._id, setAddToCartLoading)}
+            >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Add to Cart
             </Button>
@@ -112,9 +174,9 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     );
   }
 
+  // ✅ Grid view
   return (
     <div className="group flex flex-col justify-between relative bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300">
-      {/* Product Image */}
       <div>
         <div className="relative aspect-square overflow-hidden">
           <Image
@@ -127,14 +189,18 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
 
           {/* Wishlist Button */}
           <Button
+            onClick={toggleWishlist}
             variant="ghost"
             size="sm"
             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
           >
-            <Heart className="h-4 w-4" />
+            <Heart
+              className="h-5 w-5"
+              fill={inWishlist ? 'red' : 'none'}
+              stroke={inWishlist ? 'red' : 'currentColor'}
+            />
           </Button>
 
-          {/* Badge for sold items */}
           {product.sold > 100 && (
             <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
               Popular
@@ -144,7 +210,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
 
         {/* Product Info */}
         <div className="p-4">
-          {/* Brand */}
           <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
             <Link
               href={``}
@@ -154,12 +219,10 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
             </Link>
           </p>
 
-          {/* Title */}
           <h3 className="font-semibold text-sm mb-2 line-clamp-2 hover:text-primary transition-colors">
             <Link href={`products/${product.id}`}>{product.title}</Link>
           </h3>
 
-          {/* Rating */}
           <div className="flex items-center gap-1 mb-2">
             <div className="flex">{renderStars(product.ratingsAverage)}</div>
             <span className="text-xs text-muted-foreground">
@@ -167,7 +230,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
             </span>
           </div>
 
-          {/* Category */}
           <p className="text-xs text-muted-foreground mb-2">
             <Link
               href={``}
@@ -177,7 +239,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
             </Link>
           </p>
 
-          {/* Price */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-lg font-bold text-primary">
               {formatPrice(product.price)}
@@ -186,15 +247,10 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
               {product.sold} sold
             </span>
           </div>
-
-          {/* Add to Cart Button */}
         </div>
       </div>
+
       <div className="p-5">
-        {/* <Button className="w-full" size="sm">
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          Add to Cart
-        </Button> */}
         <AddToCart
           addToCartLoading={AddToCartLoading}
           productQuantity={product.quantity}

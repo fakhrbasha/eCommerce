@@ -1,25 +1,31 @@
+'use client';
+
 import { apiServices } from '@/services/api';
-import Image from 'next/image';
-import Link from 'next/link';
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Trash2, Plus, Minus } from 'lucide-react';
-import { formatPrice } from '@/helpers/currency';
-import CartProduct from '@/components/products/CartProduct';
 import InnerCart from './InnerCart';
 import { useSession } from 'next-auth/react';
-// import { formatPrice } from '@/lib/utils'; // adjust import path
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { LoadingSpinner } from '@/components';
 
-export default async function Cart() {
-  async function fetchCart() {
-    const response = await apiServices.getUserCart();
-    return response;
-  }
+export default function Cart() {
+  const { data: session } = useSession();
+  const [cartData, setCartData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const Response = await fetchCart();
+  useEffect(() => {
+    async function fetchCart() {
+      if (!session?.token) return;
+      const response = await apiServices.getUserCart(session.token);
+      setCartData(response);
+      setLoading(false);
+    }
+    fetchCart();
+  }, [session]);
 
-  if (!Response || Response.numOfCartItems === 0) {
+  if (loading) return <LoadingSpinner />;
+
+  if (!cartData || cartData.numOfCartItems === 0) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">
@@ -34,9 +40,7 @@ export default async function Cart() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <InnerCart cartData={Response} />
+      <InnerCart cartData={cartData} />
     </div>
   );
 }
-// server component
