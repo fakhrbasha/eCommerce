@@ -17,7 +17,7 @@ export default function AddToCart({
       <Button
         onClick={handleAddToCart}
         size="lg"
-        className="flex-1 w-full"
+        className="flex-1 w-full bg-green-700 hover:bg-green-800"
         disabled={productQuantity === 0 || addToCartLoading}
       >
         {addToCartLoading && <Loader2 className="animate-spin" />}

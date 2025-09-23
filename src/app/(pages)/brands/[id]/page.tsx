@@ -54,7 +54,10 @@ export default function BrandPage() {
       </div>
       <div className="flex justify-center mt-8">
         <Link href="/brands">
-          <Button size="lg" className="px-8 text-lg">
+          <Button
+            size="lg"
+            className="px-8 bg-green-700 hover:bg-green-800 text-lg"
+          >
             Go To Brands
           </Button>
         </Link>

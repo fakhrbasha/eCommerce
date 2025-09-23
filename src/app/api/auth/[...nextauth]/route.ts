@@ -13,7 +13,7 @@ const handler = NextAuth({
             async authorize(credentials, req) {
 
                 const response = await apiServices.login(credentials?.email ?? '', credentials?.password ?? '')
-                console.log(response);
+                // console.log(response);
                 if (response.message == 'success') {
                     const user = {
                         id: response.user.email,
@@ -21,10 +21,6 @@ const handler = NextAuth({
                         email: response.user.email,
                         role: response.user.role,
                         token: response.token
-                    }
-
-                    if (typeof window !== "undefined") {
-                        localStorage.setItem("token", response.token);
                     }
                     return user
                 } else {

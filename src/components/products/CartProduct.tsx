@@ -27,27 +27,17 @@ export default function CartProduct({
   handleUpdateProductCartCount,
 }: CartProductProps) {
   const [isRemovingProduct, setIsRemovingProduct] = useState(false);
-  // const [isUpdatingInc, setIsUpdatingInc] = useState(false);
-  // const [isUpdatingDec, setIsUpdatingDec] = useState(false);
   const [ProductCount, setProductCount] = useState(item.count);
-  // async function handleInc(count: number) {
-  //   // setIsUpdatingInc(true);
-  //   setProductCount(ProductCount + 1);
-  //   await handleUpdateProductCartCount(item.product._id, count);
-  //   // setIsUpdatingInc(false);
-  // }
+
 
   const [timeOutID, setTimeOutID] = useState<NodeJS.Timeout>();
   async function handleUpdateCount(count: number) {
-    // setIsUpdatingDec(true);
     setProductCount(count);
-    clearTimeout(timeOutID); // clear request after 5 seconds because if user add click before 5 seconds
-    // user click and click and click request send after 5 seconds
+    clearTimeout(timeOutID); 
     const id = setTimeout(() => {
       handleUpdateProductCartCount(item.product._id, count);
     }, 500);
     setTimeOutID(id);
-    // setIsUpdatingDec(false);
   }
   return (
     <div key={item._id} className="flex gap-4 p-4 border rounded-lg">
