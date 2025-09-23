@@ -42,7 +42,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="custom-container mx-auto px-4 pb-10">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">Products</h1>
@@ -54,28 +54,36 @@ export default function ProductsPage() {
       <div className="flex items-center justify-end mb-6">
         <div className="flex items-center border rounded-md">
           <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setViewMode('grid')}
-            className="rounded-r-none"
+            className={`rounded-r-none ${
+              viewMode === 'grid'
+                ? 'bg-green-700 text-white hover:bg-green-800'
+                : 'bg-white text-black hover:bg-green-800 hover:text-white'
+            }`}
           >
             <Grid className="h-4 w-4" />
           </Button>
+
           <Button
-            variant={viewMode === 'list' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setViewMode('list')}
-            className="rounded-l-none"
+            className={`rounded-l-none ${
+              viewMode === 'list'
+                ? 'bg-green-700 text-white hover:bg-green-800'
+                : 'bg-white text-black hover:bg-green-800 hover:text-white'
+            }`}
           >
             <List className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
       {/* Products Grid */}
       <div
         className={`grid gap-6 ${
           viewMode === 'grid'
-            ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+            ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
             : 'grid-cols-1'
         }`}
       >

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/interfaces';
 import { Button } from '@/components/ui/button';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart, Loader2, ShoppingCart } from 'lucide-react';
 import { renderStars } from '@/helpers/rating';
 import { formatPrice } from '@/helpers/currency';
 import AddToCart from './AddToCart';
@@ -29,6 +29,7 @@ export function ProductCard({
   const { handleAddToCart } = useContext(CartContext);
   const [inWishlist, setInWishlist] = useState(false);
   const { data } = useSession();
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
   async function toggleWishlist() {
     try {
@@ -36,6 +37,8 @@ export function ProductCard({
         toast.error('You must be logged in to manage wishlist');
         return;
       }
+
+      setIsWishlistLoading(true);
 
       if (inWishlist) {
         const response = await apiServices.removeItemFormWishList(
@@ -59,6 +62,7 @@ export function ProductCard({
           product.id,
           data.token
         );
+
         if (response.status === 200) {
           toast.success('Added to Wish List');
           setInWishlist(true);
@@ -69,6 +73,8 @@ export function ProductCard({
     } catch (err) {
       toast.error('Something went wrong');
       console.error(err);
+    } finally {
+      setIsWishlistLoading(false);
     }
   }
 
@@ -98,6 +104,13 @@ export function ProductCard({
             className="object-cover rounded-md"
             sizes="128px"
           />
+
+          {/* Overlay Loader */}
+          {isWishlistLoading && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10 rounded-md">
+              <Loader2 className="h-6 w-6 text-white animate-spin" />
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -187,12 +200,19 @@ export function ProductCard({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
 
+          {/* Overlay Loader */}
+          {isWishlistLoading && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+              <Loader2 className="h-8 w-8 text-white animate-spin" />
+            </div>
+          )}
+
           {/* Wishlist Button */}
           <Button
             onClick={toggleWishlist}
             variant="ghost"
             size="sm"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white z-20"
           >
             <Heart
               className="h-5 w-5"
@@ -202,7 +222,7 @@ export function ProductCard({
           </Button>
 
           {product.sold > 100 && (
-            <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+            <div className="absolute top-2 left-2 bg-green-700 text-primary-foreground text-xs px-2 py-1 rounded">
               Popular
             </div>
           )}
@@ -212,7 +232,7 @@ export function ProductCard({
         <div className="p-4">
           <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
             <Link
-              href={``}
+              href={`/brands/${product.brand._id}`}
               className="hover:text-primary hover:underline transition-colors"
             >
               {product.brand.name}

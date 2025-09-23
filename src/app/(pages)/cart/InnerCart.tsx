@@ -65,15 +65,6 @@ export default function InnerCart({ cartData }: cartDataProp) {
     setIsCartClear(false);
   }
 
-  async function handleCheckOut() {
-    setIsCheckOut(true);
-    const response = await apiServices.checkout(cartData.cartId, data?.token!);
-    setIsCheckOut(false);
-    location.href = response.session.url;
-  }
-  useEffect(() => {
-    setCartCount!(innerCartData.numOfCartItems);
-  }, [innerCartData]);
   if (!innerCartData || innerCartData.numOfCartItems === 0) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -153,19 +144,22 @@ export default function InnerCart({ cartData }: cartDataProp) {
               <span>{formatPrice(innerCartData.data.totalCartPrice)}</span>
             </div>
 
-            <Button
-              disabled={isCheckOut}
-              // onClick={() => {
-              //   handleCheckOut();
-              // }}
-              className="w-full"
-              size="lg"
-            >
-              {isCheckOut && <Loader2 className="animate-spin" />}
-              <Link href={'/address'}>Proceed to Checkout</Link>
-            </Button>
+            <Link href={'/address'}>
+              <Button
+                disabled={isCheckOut}
+                className="w-full flex items-center bg-green-700 justify-center gap-2"
+                size="lg"
+              >
+                {isCheckOut && <Loader2 className="animate-spin h-4 w-4" />}
+                {isCheckOut ? 'Processing...' : 'Proceed to Checkout'}
+              </Button>
+            </Link>
 
-            <Button variant="outline" className="w-full mt-2" asChild>
+            <Button
+              variant="outline"
+              className="w-full mt-2 border-green-700 text-green-700"
+              asChild
+            >
               <Link href="/products">Continue Shopping</Link>
             </Button>
           </div>

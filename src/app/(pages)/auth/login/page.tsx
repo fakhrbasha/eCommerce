@@ -1,22 +1,22 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useFormContext } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string(),
@@ -24,13 +24,15 @@ const formSchema = z.object({
 });
 
 export default function ProfileForm() {
-  // ...
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/products';
+
   async function onSubmit(values: any) {
     try {
+      setIsLoading(true);
       const response = await signIn('credentials', {
         email: values.email,
         password: values.password,
@@ -41,13 +43,16 @@ export default function ProfileForm() {
       }
     } catch (error) {
       alert(JSON.stringify(error));
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto my-20">
+    <div className="max-w-md mx-auto my-20 w-full px-4">
+      <h1 className="text-2xl font-bold text-center my-10">Login</h1>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="email"
@@ -55,7 +60,12 @@ export default function ProfileForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="e-mail.com" type="email" {...field} />
+                  <Input
+                    placeholder="e-mail.com"
+                    type="email"
+                    {...field}
+                    className="w-full"
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -65,19 +75,35 @@ export default function ProfileForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>password</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="*****" type="password" {...field} />
+                  <Input
+                    placeholder="*****"
+                    type="password"
+                    {...field}
+                    className="w-full"
+                  />
                 </FormControl>
               </FormItem>
             )}
           />
-          <div className="flex justify-between">
-            <Button className="bg-green-900" type="submit">
-              Submit
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button className="bg-green-900 w-full sm:w-auto" type="submit">
+              {isLoading ? (
+                <Loader2 className="animate-spin mx-auto" />
+              ) : (
+                'Login'
+              )}
             </Button>
-            <Link href="/auth/register">
-              <Button variant="outline">Create Account</Button>
+            <Link href="/auth/forget_password" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
+                Forget Password
+              </Button>
+            </Link>
+            <Link href="/auth/register" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
+                Create Account
+              </Button>
             </Link>
           </div>
         </form>

@@ -126,6 +126,11 @@
     @apply bg-background text-foreground;
   }
 }
+@layer components {
+    .custom-container {
+    @apply w-[90%] mx-auto;
+  }
+}
 @import "tailwindcss";
 
 @theme inline {

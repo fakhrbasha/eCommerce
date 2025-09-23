@@ -83,7 +83,7 @@ class ApiServices {
         }).then((res) => res.json());
     }
 
-    async checkout(cartId: string, token: string) {
+    async checkout(cartId: string, token: string, city: string, phone: string, details: string) {
         return await fetch(
             this.#baseURL +
             "/api/v1/orders/checkout-session/" +
@@ -93,9 +93,9 @@ class ApiServices {
                 method: "POST",
                 body: JSON.stringify({
                     shippingAddress: {
-                        details: "details",
-                        phone: "01010700999",
-                        city: "Cairo",
+                        details,
+                        phone,
+                        city
                     },
                 }),
                 headers: this.#getHeader(token),
@@ -167,14 +167,32 @@ class ApiServices {
             method: 'delete'
         }).then(res => res.json())
     }
-    async getUserAllOrder() {
 
-    }
     // Address //
     async addUserAddress(name: string, details: string, phone: string, city: string, token: string) {
         return await fetch(this.#baseURL + '/api/v1/addresses', {
             body: JSON.stringify({ name, details, phone, city }),
             headers: this.#getHeader(token),
+            method: 'post'
+        }).then(res => res.json())
+    }
+    async verifyToken(token: string) {
+        return await fetch(this.#baseURL + '/api/v1/auth/verifyToken',
+            {
+                headers: this.#getHeader(token)
+            }
+        ).then(res => res.json())
+    }
+    async getUserOrder(id: string) {
+        return await fetch(this.#baseURL + '/api/v1/orders/user/' + id, {
+            headers: { "Content-Type": "application/json" },
+
+        }).then(res => res.json())
+    }
+    async forgetPassword(email: string) {
+        return await fetch(this.#baseURL + '/api/v1/auth/forgotPasswords', {
+            body: JSON.stringify({ email }),
+            headers: { "Content-Type": "application/json" },
             method: 'post'
         }).then(res => res.json())
     }

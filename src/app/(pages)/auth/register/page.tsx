@@ -74,7 +74,9 @@ export default function Register() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto my-20">
+    <div className="max-w-md mx-auto my-20 w-full px-4">
+      <h1 className="text-2xl font-bold text-center my-10">Register</h1>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -146,12 +148,23 @@ export default function Register() {
               </FormItem>
             )}
           />
-          <div className="flex justify-between">
-            <Button disabled={isLoading} className="bg-green-900" type="submit">
-              {isLoading ? <Loader2 className="animate-spin" /> : 'Register'}
+          <div className="flex flex-col md:flex-row gap-3">
+            <Button
+              disabled={isLoading}
+              className="bg-green-900 w-full md:w-auto"
+              type="submit"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin mx-auto" />
+              ) : (
+                'Register'
+              )}
             </Button>
-            <Link href="/auth/login">
-              <Button variant="outline">Have Account</Button>
+
+            <Link href="/auth/login" className="w-full md:w-auto">
+              <Button className="w-full md:w-auto" variant="outline">
+                Have Account
+              </Button>
             </Link>
           </div>
         </form>

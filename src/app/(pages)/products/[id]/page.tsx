@@ -12,58 +12,87 @@ import {
   Truck,
   Shield,
   RotateCcw,
-  Loader,
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { renderStars } from '@/helpers/rating';
-import { ProductsResponse, SingleProductResponse } from '@/types';
+import { SingleProductResponse } from '@/types';
 import { apiServices } from '@/services/api';
 import toast from 'react-hot-toast';
 import AddToCart from '@/components/products/AddToCart';
 import { CartContext } from '@/contexts/CartContext';
+import { useSession } from 'next-auth/react';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  // console.log(productId.id);
-  // const params = useParams();
-  // const productId = params?.productId as string;
+  const { data: sessionData } = useSession();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(-1);
 
   const [addToCartLoading, setAddToCartLoading] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [inWishlist, setInWishlist] = useState(false);
 
+  const { handleAddToCart } = useContext(CartContext);
+
+  // Fetch single product
   async function getSingleProduct() {
     try {
       setLoading(true);
-
       const data: SingleProductResponse = await apiServices.getSingleProduct(
-        id ?? '' // to ignore undefined
+        id ?? ''
       );
-      // console.log(data.data);
       setProduct(data.data);
-    } catch (error: any) {
-      setError(error.message);
-      // console.log(error.message);
+
+      // check if product is in wishlist
+      if (sessionData?.token) {
+        const wishlist = await apiServices.getAllWishList(sessionData.token);
+        const exists = wishlist?.data?.some(
+          (item: any) => item._id === data.data._id
+        );
+        setInWishlist(exists);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch product');
     } finally {
       setLoading(false);
     }
   }
-  const { handleAddToCart } = useContext(CartContext);
 
-  // async function handleAddToCart() {
-  //   setAddToCartLoading(true);
-  //   const data = await apiServices.addProductToCart(product!._id);
-  //   setCartCount!(data.numOfCartItems);
-  //   toast.success(data.message);
-  //   setAddToCartLoading(false);
-  // }
+  // Toggle wishlist
+  async function toggleWishlist() {
+    if (!sessionData?.token || !product) {
+      toast.error('You must be logged in to manage wishlist');
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      if (inWishlist) {
+        await apiServices.removeItemFormWishList(
+          sessionData.token,
+          product._id
+        );
+        setInWishlist(false);
+        toast.success('Removed from wishlist');
+      } else {
+        await apiServices.addToWishList(product._id, sessionData.token);
+        setInWishlist(true);
+        toast.success('Added to wishlist');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong');
+    } finally {
+      setWishlistLoading(false);
+    }
+  }
 
   useEffect(() => {
     getSingleProduct();
-  }, [id]);
+  }, [id, sessionData?.token]);
 
   if (loading) {
     return (
@@ -86,19 +115,17 @@ export default function ProductDetailPage() {
     );
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
     }).format(price);
-  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="custom-container mx-auto px-4 pb-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Product Images */}
         <div className="space-y-4">
-          {/* Main Image */}
           <div className="relative aspect-square overflow-hidden rounded-lg border">
             <Image
               src={product.images[selectedImage] ?? product.imageCover}
@@ -109,7 +136,6 @@ export default function ProductDetailPage() {
             />
           </div>
 
-          {/* Thumbnail Images */}
           {product.images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
               {product.images.map((image, index) => (
@@ -137,7 +163,6 @@ export default function ProductDetailPage() {
 
         {/* Product Info */}
         <div className="space-y-6">
-          {/* Brand */}
           <div className="text-sm text-muted-foreground uppercase tracking-wide">
             <Link
               href={``}
@@ -147,10 +172,8 @@ export default function ProductDetailPage() {
             </Link>
           </div>
 
-          {/* Title */}
           <h1 className="text-3xl font-bold">{product.title}</h1>
 
-          {/* Rating */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               {renderStars(product.ratingsAverage)}
@@ -163,12 +186,10 @@ export default function ProductDetailPage() {
             </span>
           </div>
 
-          {/* Price */}
           <div className="text-3xl font-bold text-primary">
             {formatPrice(product.price)}
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
             <h3 className="font-semibold">Description</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -176,7 +197,6 @@ export default function ProductDetailPage() {
             </p>
           </div>
 
-          {/* Category & Subcategory */}
           <div className="flex flex-wrap gap-2">
             <Link
               href={``}
@@ -194,7 +214,6 @@ export default function ProductDetailPage() {
             ))}
           </div>
 
-          {/* Stock Status */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Stock:</span>
             <span
@@ -210,29 +229,27 @@ export default function ProductDetailPage() {
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            {/* <Button
-              onClick={handleAddToCart}
-              size="lg"
-              className="flex-1"
-              disabled={product.quantity === 0 || addToCartLoading}
-            >
-              {addToCartLoading && <Loader2 className="animate-spin" />}
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Add to Cart
-            </Button> */}
             <AddToCart
               addToCartLoading={addToCartLoading}
               productQuantity={product.quantity}
-              handleAddToCart={() => {
-                handleAddToCart!(product._id, setAddToCartLoading);
-              }}
+              handleAddToCart={() =>
+                handleAddToCart!(product._id, setAddToCartLoading)
+              }
             />
-            <Button variant="outline" size="lg">
-              <Heart className="h-5 w-5" />
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={toggleWishlist}
+              disabled={wishlistLoading}
+            >
+              <Heart
+                className="h-5 w-5"
+                fill={inWishlist ? 'red' : 'none'}
+                stroke={inWishlist ? 'red' : 'currentColor'}
+              />
             </Button>
           </div>
 
-          {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t">
             <div className="flex items-center gap-3">
               <Truck className="h-5 w-5 text-primary" />
