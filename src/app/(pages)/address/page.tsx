@@ -22,9 +22,7 @@ import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  details: z
-    .string()
-    .min(5, { message: 'Details must be at least 5 characters.' }),
+  details: z.string().min(5, { message: 'Details must be at least 5 characters.' }),
   city: z.string().min(2, { message: 'City must be at least 2 characters.' }),
   phone: z.string().min(10, { message: 'Phone must be at least 10 numbers.' }),
 });
@@ -36,8 +34,8 @@ interface CartDataProp {
 export default function Address({ cartData }: CartDataProp) {
   const { data } = useSession();
   const [isCheckOut, setIsCheckOut] = useState(false);
-  const [innerCartData, setInnerCartData] =
-    useState<GetUserCartResponse>(cartData);
+  const [innerCartData, setInnerCartData] = useState<GetUserCartResponse>(cartData);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,14 +45,27 @@ export default function Address({ cartData }: CartDataProp) {
       phone: '',
     },
   });
+
   async function getNewCartItems() {
-    const newProductCart = await apiServices.getUserCart(data?.token!);
-    setInnerCartData(newProductCart);
+    if (!data?.token) return;
+    try {
+      const newProductCart = await apiServices.getUserCart(data.token);
+      setInnerCartData(newProductCart);
+    } catch (error) {
+      toast.error('Failed to fetch cart items');
+    }
   }
+
   useEffect(() => {
     getNewCartItems();
-  }, []);
+  }, [data?.token]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!data?.token) {
+      toast.error('User not authenticated.');
+      return;
+    }
+
     try {
       setIsCheckOut(true);
 
@@ -63,12 +74,12 @@ export default function Address({ cartData }: CartDataProp) {
         values.details,
         values.city,
         values.phone,
-        data?.token!
+        data.token
       );
 
       const response = await apiServices.checkout(
         innerCartData.cartId,
-        data?.token!,
+        data.token,
         values.city,
         values.phone,
         values.details
@@ -77,12 +88,12 @@ export default function Address({ cartData }: CartDataProp) {
       if (response?.session?.url) {
         location.href = response.session.url;
       } else {
-        console.error();
-        toast.error('Checkout response invalid:', response);
+        console.error('Checkout response invalid:', response);
+        toast.error('Checkout response invalid');
       }
     } catch (error) {
-      //   console.error();
-      toast.error('Checkout error:');
+      console.error('Checkout error:', error);
+      toast.error('Checkout error');
     } finally {
       setIsCheckOut(false);
     }
@@ -141,11 +152,7 @@ export default function Address({ cartData }: CartDataProp) {
               <FormItem>
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="Your Phone Number"
-                    {...field}
-                  />
+                  <Input type="tel" placeholder="Your Phone Number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
