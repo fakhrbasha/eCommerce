@@ -60,7 +60,7 @@ export default function AllOrders() {
   }
 
   return (
-    <div className="custom-container mx-auto my-10 space-y-8">
+    <div className="custom-container w-[80%] mx-auto my-10 space-y-8">
       {orders.map((order, index) => {
         if (!order) return null;
 

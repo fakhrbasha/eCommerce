@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { apiServices } from '@/services/api';
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GetUserCartResponse } from '@/interfaces';
 import toast from 'react-hot-toast';
 
@@ -46,21 +46,22 @@ export default function Address({ cartData }: CartDataProp) {
     },
   });
 
-  async function getNewCartItems() {
-    if (!data?.token) return;
-    try {
-      const newProductCart = await apiServices.getUserCart(data.token);
-      setInnerCartData(newProductCart);
-    } catch (error) {
-      toast.error('Failed to fetch cart items');
-    }
-  }
-
+  // Fetch updated cart items whenever token changes
   useEffect(() => {
-    getNewCartItems();
+    const fetchCart = async () => {
+      if (!data?.token) return;
+      try {
+        const newProductCart = await apiServices.getUserCart(data.token);
+        setInnerCartData(newProductCart);
+      } catch {
+        toast.error('Failed to fetch cart items');
+      }
+    };
+
+    fetchCart();
   }, [data?.token]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!data?.token) {
       toast.error('User not authenticated.');
       return;
@@ -69,6 +70,7 @@ export default function Address({ cartData }: CartDataProp) {
     try {
       setIsCheckOut(true);
 
+      // Add user address
       await apiServices.addUserAddress(
         values.name,
         values.details,
@@ -77,6 +79,7 @@ export default function Address({ cartData }: CartDataProp) {
         data.token
       );
 
+      // Proceed to checkout
       const response = await apiServices.checkout(
         innerCartData.cartId,
         data.token,
@@ -97,7 +100,7 @@ export default function Address({ cartData }: CartDataProp) {
     } finally {
       setIsCheckOut(false);
     }
-  }
+  };
 
   return (
     <div className="mx-auto w-[80%] my-20">
