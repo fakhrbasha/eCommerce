@@ -5,6 +5,7 @@ import {
   createContext,
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useState,
 } from 'react';
@@ -38,7 +39,7 @@ export default function CartContextProvider({
   const [cartCount, setCartCount] = useState(0);
   const [cartLoading, setCartLoading] = useState(true);
 
-  const getCard = async () => {
+  const getCard = useCallback(async () => {
     try {
       setCartLoading(true);
       if (!session?.token) return;
@@ -50,7 +51,11 @@ export default function CartContextProvider({
     } finally {
       setCartLoading(false);
     }
-  };
+  }, [session?.token]);
+
+  useEffect(() => {
+    getCard();
+  }, [getCard]);
 
   const handleAddToCart = async (
     productId: string,
@@ -72,10 +77,6 @@ export default function CartContextProvider({
       setAddToCartLoading(false);
     }
   };
-
-  useEffect(() => {
-    getCard();
-  }, [session?.token]);
 
   return (
     <CartContext.Provider

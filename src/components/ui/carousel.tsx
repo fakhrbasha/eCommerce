@@ -1,6 +1,7 @@
 'use client';
 import { IconArrowNarrowRight } from '@tabler/icons-react';
 import { useState, useRef, useId, useEffect } from 'react';
+import Image from 'next/image';
 
 interface SlideData {
   title: string;
@@ -19,7 +20,7 @@ const Slide = ({ slide, index, current, handleSlideClick }: SlideProps) => {
 
   const xRef = useRef(0);
   const yRef = useRef(0);
-  const frameRef = useRef<number>();
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
     const animate = () => {
@@ -37,7 +38,7 @@ const Slide = ({ slide, index, current, handleSlideClick }: SlideProps) => {
     frameRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (frameRef.current) {
+      if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
       }
     };
@@ -55,10 +56,6 @@ const Slide = ({ slide, index, current, handleSlideClick }: SlideProps) => {
   const handleMouseLeave = () => {
     xRef.current = 0;
     yRef.current = 0;
-  };
-
-  const imageLoaded = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    event.currentTarget.style.opacity = '1';
   };
 
   const { src, title } = slide;
@@ -89,16 +86,16 @@ const Slide = ({ slide, index, current, handleSlideClick }: SlideProps) => {
                 : 'none',
           }}
         >
-          <img
+          <Image
             className="absolute inset-0 w-[120%] h-[120%] object-cover opacity-100 transition-opacity duration-600 ease-in-out"
             style={{
               opacity: current === index ? 1 : 0.5,
             }}
             alt={title}
             src={src}
-            onLoad={imageLoaded}
-            loading="eager"
-            decoding="sync"
+            fill
+            sizes="(max-width: 768px) 100vw, 70vmin"
+            priority
           />
           {current === index && (
             <div className="absolute inset-0 bg-black/30 transition-all duration-1000" />
