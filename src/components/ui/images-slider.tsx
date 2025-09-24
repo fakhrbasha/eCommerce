@@ -1,7 +1,7 @@
 'use client';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
 import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence, cubicBezier } from 'motion/react';
 
 export const ImagesSlider = ({
   images,
@@ -86,7 +86,6 @@ export const ImagesSlider = ({
       if (interval) clearInterval(interval);
     };
   }, [autoplay, handleNext, handlePrevious]);
-
   const slideVariants = {
     initial: {
       scale: 0,
@@ -99,7 +98,7 @@ export const ImagesSlider = ({
       opacity: 1,
       transition: {
         duration: 0.5,
-        ease: [0.645, 0.045, 0.355, 1.0],
+        ease: cubicBezier(0.645, 0.045, 0.355, 1.0),
       },
     },
     upExit: {
