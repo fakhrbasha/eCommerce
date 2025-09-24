@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
     setWishlistLoading(true);
     try {
       if (inWishlist) {
-        await apiServices.removeItemFromWishList(
+        await apiServices.removeItemFormWishList(
           sessionData.token,
           product._id
         );

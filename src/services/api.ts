@@ -150,13 +150,11 @@ class ApiServices {
         phone: string,
         details: string
     ) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
         return await fetch(
             this.#baseURL +
             "/api/v1/orders/checkout-session/" +
             cartId +
-            "?url=" + appUrl,
+            "?url=http://localhost:3000",
             {
                 method: "POST",
                 body: JSON.stringify({
@@ -211,7 +209,7 @@ class ApiServices {
         }).then((res) => res.json());
     }
 
-    async removeItemFromWishList(token: string, productId: string) {
+    async removeItemFormWishList(token: string, productId: string) {
         return await fetch(this.#baseURL + "/api/v1/wishlist/" + productId, {
             method: "DELETE",
             headers: this.#getHeader(token),
