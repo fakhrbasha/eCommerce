@@ -5,14 +5,14 @@ import { Product } from '@/interfaces';
 import { apiServices } from '@/services/api';
 import { ProductsResponse } from '@/types';
 import { useSession } from 'next-auth/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 export default function WishList() {
   const { data } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function getAllWishList() {
+  const getAllWishList = useCallback(async () => {
     try {
       if (!data?.token) return;
       const response: ProductsResponse = await apiServices.getAllWishList(
@@ -24,11 +24,11 @@ export default function WishList() {
       console.error('Error fetching wishlist:', err);
       setLoading(false);
     }
-  }
+  }, [data?.token]);
 
   useEffect(() => {
     getAllWishList();
-  }, [data?.token]);
+  }, [getAllWishList]);
 
   if (loading) {
     return <LoadingSpinner />;

@@ -7,8 +7,6 @@ import React, { useState } from 'react';
 import { Button } from '../ui';
 import { Loader2, Minus, Plus, Trash2 } from 'lucide-react';
 import { CartProduct as CartProductI, InnerProduct } from '@/interfaces';
-import { apiServices } from '@/services/api';
-import toast from 'react-hot-toast';
 
 interface CartProductProps {
   item: CartProductI<InnerProduct>;
@@ -29,11 +27,10 @@ export default function CartProduct({
   const [isRemovingProduct, setIsRemovingProduct] = useState(false);
   const [ProductCount, setProductCount] = useState(item.count);
 
-
   const [timeOutID, setTimeOutID] = useState<NodeJS.Timeout>();
   async function handleUpdateCount(count: number) {
     setProductCount(count);
-    clearTimeout(timeOutID); 
+    clearTimeout(timeOutID);
     const id = setTimeout(() => {
       handleUpdateProductCartCount(item.product._id, count);
     }, 500);

@@ -4,13 +4,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 const handler = NextAuth({
     providers: [
         CredentialsProvider({
-            name: "Credentials", // signin with ....
+            name: "Credentials",
 
             credentials: {
                 email: { label: "Email", type: "email", placeholder: "Email@gmail.com" },
                 password: { label: "Password", type: "password", placeholder: "**************" }
             },
-            async authorize(credentials, req) {
+            async authorize(credentials) {
 
                 const response = await apiServices.login(credentials?.email ?? '', credentials?.password ?? '')
                 // console.log(response);

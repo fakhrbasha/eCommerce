@@ -5,21 +5,30 @@ import { Product } from '@/interfaces';
 import { ProductCard } from '@/components/products/ProductCard';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Grid, List } from 'lucide-react';
+import { Grid, List } from 'lucide-react'; // 🔥 شلت Search, Filter
 import { ProductsResponse } from '@/types';
 import { apiServices } from '@/services/api';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   async function fetchProducts() {
-    setLoading(true);
-    const data: ProductsResponse = await apiServices.getAllProducts();
-    setLoading(false);
-    setProducts(data.data);
+    try {
+      setLoading(true);
+      const data: ProductsResponse = await apiServices.getAllProducts();
+      setProducts(data.data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to fetch products');
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -35,7 +44,7 @@ export default function ProductsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
-          <Button>Try Again</Button>
+          <Button onClick={fetchProducts}>Try Again</Button>
         </div>
       </div>
     );

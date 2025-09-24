@@ -20,6 +20,11 @@ interface ProductCardProps {
   onWishlistChange?: () => void;
 }
 
+interface WishlistItem {
+  _id: string;
+  product?: Product;
+}
+
 export function ProductCard({
   product,
   viewMode = 'grid',
@@ -82,11 +87,13 @@ export function ProductCard({
     async function checkWishlist() {
       if (!data?.token) return;
       const wishlist = await apiServices.getAllWishList(data.token);
+
       const exists = wishlist?.data?.some(
-        (item: any) =>
+        (item: WishlistItem) =>
           item._id === product._id || item.product?._id === product._id
       );
-      setInWishlist(exists);
+
+      setInWishlist(!!exists);
     }
 
     checkWishlist();

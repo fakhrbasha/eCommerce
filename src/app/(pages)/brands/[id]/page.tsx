@@ -3,6 +3,7 @@ import { Button, LoadingSpinner } from '@/components';
 import { Brand } from '@/interfaces';
 import { apiServices } from '@/services/api';
 import { SingleBrandResponse } from '@/types';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -11,15 +12,15 @@ export default function BrandPage() {
   const { id } = useParams();
   const [brand, setBrand] = useState<Brand | null>(null);
 
-  async function getSpecificBrand() {
-    const response: SingleBrandResponse = await apiServices.getSpecificBrand(
-      id ?? ''
-    );
-    setBrand(response.data);
-  }
-
   useEffect(() => {
-    getSpecificBrand();
+    async function fetchBrand() {
+      const response: SingleBrandResponse = await apiServices.getSpecificBrand(
+        id ?? ''
+      );
+      setBrand(response.data);
+    }
+
+    fetchBrand();
   }, [id]);
 
   if (!brand) {
@@ -32,7 +33,9 @@ export default function BrandPage() {
         {/* Brand Image */}
         <div className="w-full h-64 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
           {brand.image ? (
-            <img
+            <Image
+              width={500}
+              height={500}
               src={brand.image}
               alt={brand.name}
               className="max-h-60 object-contain"

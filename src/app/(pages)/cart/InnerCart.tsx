@@ -9,8 +9,9 @@ import { Separator } from '@radix-ui/react-separator';
 import { Loader2, Trash2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import toast from 'react-hot-toast';
+
 interface cartDataProp {
   cartData: GetUserCartResponse;
 }
@@ -20,47 +21,41 @@ export default function InnerCart({ cartData }: cartDataProp) {
   const [innerCartData, setInnerCartData] =
     useState<GetUserCartResponse>(cartData);
   const [isCartClear, setIsCartClear] = useState(false);
-  const [isCheckOut, setIsCheckOut] = useState(false);
-  const { setCartCount } = useContext(CartContext);
+  const [isCheckOut] = useState(false);
+  useContext(CartContext);
 
   async function getNewCartItems() {
-    const newProductCart = await apiServices.getUserCart(data?.token!);
+    if (!data?.token) return;
+    const newProductCart = await apiServices.getUserCart(data.token);
     setInnerCartData(newProductCart);
   }
+
   async function handleRemoveCartProduct(
     productId: string,
     setIsRemovingProduct: (value: boolean) => void
   ) {
+    if (!data?.token) return;
     setIsRemovingProduct(true);
-    const response = await apiServices.removeSpecificItem(
-      productId,
-      data?.token!
-    );
+    await apiServices.removeSpecificItem(productId, data.token);
     getNewCartItems();
-    // console.log(response);
     toast.success('Product removed from cart', { position: 'bottom-right' });
     setIsRemovingProduct(false);
   }
+
   async function handleUpdateProductCartCount(
     productId: string,
     count: number
   ) {
-    // setIsUpdating(true);
-    const response = await apiServices.updateCartCount(
-      productId,
-      count,
-      data?.token!
-    );
+    if (!data?.token) return;
+    await apiServices.updateCartCount(productId, count, data.token);
     getNewCartItems();
-    // setIsUpdating(false);
-    // console.log(response);
   }
 
   async function handleClearCart() {
+    if (!data?.token) return;
     setIsCartClear(true);
-    const response = await apiServices.clearCart(data?.token!);
+    await apiServices.clearCart(data.token);
     getNewCartItems();
-
     toast.success('Cart cleared', { position: 'bottom-right' });
     setIsCartClear(false);
   }

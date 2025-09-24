@@ -2,15 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  ShoppingCart,
-  Search,
-  User,
-  Menu,
-  X,
-  Loader2,
-  LogOutIcon,
-} from 'lucide-react';
+import { ShoppingCart, Menu, X, Loader2, LogOutIcon } from 'lucide-react';
 import { Button } from '@/components';
 import {
   NavigationMenu,
@@ -27,7 +19,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { cartCount, cartLoading } = useContext(CartContext);
-  const { data, status } = useSession();
+  const { status } = useSession();
 
   const navItems = [
     { href: '/products', label: 'Products' },

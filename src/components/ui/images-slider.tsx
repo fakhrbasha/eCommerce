@@ -1,7 +1,7 @@
-"use client";
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "motion/react";
-import React, { useEffect, useState } from "react";
+'use client';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 export const ImagesSlider = ({
   images,
@@ -10,7 +10,7 @@ export const ImagesSlider = ({
   overlayClassName,
   className,
   autoplay = true,
-  direction = "up",
+  direction = 'up',
 }: {
   images: string[];
   children: React.ReactNode;
@@ -18,59 +18,63 @@ export const ImagesSlider = ({
   overlayClassName?: string;
   className?: string;
   autoplay?: boolean;
-  direction?: "up" | "down";
+  direction?: 'up' | 'down';
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadedImages, setLoadedImages] = useState<string[]>([]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentIndex((prevIndex) =>
       prevIndex + 1 === images.length ? 0 : prevIndex + 1
     );
-  };
+  }, [images.length]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setCurrentIndex((prevIndex) =>
       prevIndex - 1 < 0 ? images.length - 1 : prevIndex - 1
     );
-  };
+  }, [images.length]);
+
+  const loadImages = useCallback(() => {
+    setLoading(true);
+    const loadPromises = images.map(
+      (image) =>
+        new Promise<string>((resolve, reject) => {
+          const img = new Image();
+          img.src = image;
+          img.onload = () => resolve(image);
+          img.onerror = reject;
+        })
+    );
+
+    Promise.all(loadPromises)
+      .then((loaded) => {
+        setLoadedImages(loaded);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Failed to load images', error);
+        setLoading(false);
+      });
+  }, [images]);
 
   useEffect(() => {
     loadImages();
-  }, []);
+  }, [loadImages]);
 
-  const loadImages = () => {
-    setLoading(true);
-    const loadPromises = images.map((image) => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = image;
-        img.onload = () => resolve(image);
-        img.onerror = reject;
-      });
-    });
-
-    Promise.all(loadPromises)
-      .then((loadedImages) => {
-        setLoadedImages(loadedImages as string[]);
-        setLoading(false);
-      })
-      .catch((error) => console.error("Failed to load images", error));
-  };
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowRight") {
+      if (event.key === 'ArrowRight') {
         handleNext();
-      } else if (event.key === "ArrowLeft") {
+      } else if (event.key === 'ArrowLeft') {
         handlePrevious();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
 
-    // autoplay
-    let interval: any;
+    let interval: NodeJS.Timeout | undefined;
     if (autoplay) {
       interval = setInterval(() => {
         handleNext();
@@ -78,10 +82,10 @@ export const ImagesSlider = ({
     }
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      clearInterval(interval);
+      window.removeEventListener('keydown', handleKeyDown);
+      if (interval) clearInterval(interval);
     };
-  }, []);
+  }, [autoplay, handleNext, handlePrevious]);
 
   const slideVariants = {
     initial: {
@@ -100,14 +104,14 @@ export const ImagesSlider = ({
     },
     upExit: {
       opacity: 1,
-      y: "-150%",
+      y: '-150%',
       transition: {
         duration: 1,
       },
     },
     downExit: {
       opacity: 1,
-      y: "150%",
+      y: '150%',
       transition: {
         duration: 1,
       },
@@ -119,17 +123,21 @@ export const ImagesSlider = ({
   return (
     <div
       className={cn(
-        "overflow-hidden h-full w-full relative flex items-center justify-center",
+        'overflow-hidden h-full w-full relative flex items-center justify-center',
         className
       )}
       style={{
-        perspective: "1000px",
+        perspective: '1000px',
       }}
     >
+      {loading && (
+        <div className="absolute z-50 text-white">Loading images...</div>
+      )}
+
       {areImagesLoaded && children}
       {areImagesLoaded && overlay && (
         <div
-          className={cn("absolute inset-0 bg-black/60 z-40", overlayClassName)}
+          className={cn('absolute inset-0 bg-black/60 z-40', overlayClassName)}
         />
       )}
 
@@ -140,7 +148,7 @@ export const ImagesSlider = ({
             src={loadedImages[currentIndex]}
             initial="initial"
             animate="visible"
-            exit={direction === "up" ? "upExit" : "downExit"}
+            exit={direction === 'up' ? 'upExit' : 'downExit'}
             variants={slideVariants}
             className="image h-full w-full absolute inset-0 object-cover object-center"
           />

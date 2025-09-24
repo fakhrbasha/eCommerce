@@ -2,12 +2,13 @@
 import { LoadingSpinner } from '@/components';
 import { Brand } from '@/interfaces';
 import { apiServices } from '@/services/api';
+import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
 export default function Page() {
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
 
   async function getBrands() {
     try {
@@ -51,7 +52,9 @@ export default function Page() {
           >
             <div className="flex items-center justify-center h-24 mb-4 dark:bg-gray-800 rounded-xl">
               {brand.image ? (
-                <img
+                <Image
+                  width={500}
+                  height={500}
                   src={brand.image}
                   alt={brand.name}
                   className="max-h-20 object-contain"

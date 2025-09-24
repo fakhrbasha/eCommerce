@@ -1,22 +1,19 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useFormContext } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
-  FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { apiServices } from '@/services/api';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -27,27 +24,35 @@ export const formSchema = z.object({
 });
 
 export default function Register() {
-  // ...
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm({
+
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
     },
   });
-  const router = useRouter();
-  async function onSubmit(values: any) {
-    setIsLoading(true);
-    const response = await apiServices.forgetPassword(values.email);
 
-    if (response.statusMsg == 'success') {
-      setIsLoading(false);
-      toast.success('Reset code sent to your email');
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 1000);
-    } else {
-      toast.error(response.message);
+  const router = useRouter();
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+
+    try {
+      const response = await apiServices.forgetPassword(values.email);
+
+      if (response.statusMsg === 'success') {
+        toast.success('Reset code sent to your email');
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 1000);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error('Forget password error:', error);
+      toast.error('Something went wrong');
+    } finally {
       setIsLoading(false);
     }
   }

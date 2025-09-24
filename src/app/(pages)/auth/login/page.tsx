@@ -19,18 +19,26 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
-  email: z.string(),
-  password: z.string(),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export default function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/products';
 
-  async function onSubmit(values: any) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
       const response = await signIn('credentials', {
@@ -38,11 +46,15 @@ export default function ProfileForm() {
         password: values.password,
         redirect: false,
       });
+
       if (response?.ok) {
         router.push(callbackUrl);
+      } else {
+        alert('Invalid credentials');
       }
     } catch (error) {
-      alert(JSON.stringify(error));
+      console.error(error);
+      alert('Something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +100,11 @@ export default function ProfileForm() {
             )}
           />
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button className="bg-green-900 w-full sm:w-auto" type="submit">
+            <Button
+              className="bg-green-900 w-full sm:w-auto"
+              type="submit"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <Loader2 className="animate-spin mx-auto" />
               ) : (

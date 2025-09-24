@@ -17,11 +17,11 @@ const productSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(getAllProduct.fulfilled, (state, action) => {
-            state.products = action.payload // payload data returned
+            state.products = action.payload
             console.log("fulfilled", action.payload);
-        }).addCase(getAllProduct.pending, (state, action) => {
+        }).addCase(getAllProduct.pending, () => {
             console.log("pending");
-        }).addCase(getAllProduct.rejected, (state, action) => {
+        }).addCase(getAllProduct.rejected, () => {
             console.log('rejected');
         })
     },

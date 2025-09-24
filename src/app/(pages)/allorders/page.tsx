@@ -1,5 +1,6 @@
 'use client';
 import { LoadingSpinner } from '@/components';
+import { Order } from '@/interfaces/order';
 import { apiServices } from '@/services/api';
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
@@ -7,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 export default function AllOrders() {
   const { data, status } = useSession();
   const [userId, setUserId] = useState<string | null>(null);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   async function getUserId(token: string) {
@@ -23,12 +24,10 @@ export default function AllOrders() {
     try {
       const response = await apiServices.getUserOrder(userId);
       setOrders(Array.isArray(response) ? response.filter(Boolean) : []);
-      console.log(response);
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
       setOrders([]);
-    } finally {
       setIsLoading(false);
     }
   }
@@ -105,7 +104,7 @@ export default function AllOrders() {
             {/* Products List */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
               {cartItems.length ? (
-                cartItems.map((item: any, idx: any) => (
+                cartItems.map((item, idx) => (
                   <div
                     key={item._id || item.product?.id || `product-${idx}`}
                     className="border p-2 rounded shadow-sm bg-gray-50"
@@ -114,10 +113,10 @@ export default function AllOrders() {
                       {item.product?.title || 'Unnamed Product'}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      Price: ${item.price?.toFixed(2) || '0.00'}
+                      Price: ${item.price?.toFixed(2) ?? '0.00'}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Quantity: {item.count || 1}
+                      Quantity: {item.count ?? 1}
                     </p>
                   </div>
                 ))
@@ -147,7 +146,7 @@ export default function AllOrders() {
               </div>
               <div>
                 <h3 className="font-medium">Total</h3>
-                <p>${order.totalOrderPrice?.toFixed(2) || '0.00'}</p>
+                <p>${order.totalOrderPrice?.toFixed(2) ?? '0.00'}</p>
               </div>
             </div>
           </div>

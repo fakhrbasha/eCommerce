@@ -1,19 +1,12 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { Product } from '@/interfaces';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import {
-  ShoppingCart,
-  Heart,
-  Truck,
-  Shield,
-  RotateCcw,
-  Loader2,
-} from 'lucide-react';
+import { Heart, Truck, Shield, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { renderStars } from '@/helpers/rating';
 import { SingleProductResponse } from '@/types';
@@ -22,6 +15,10 @@ import toast from 'react-hot-toast';
 import AddToCart from '@/components/products/AddToCart';
 import { CartContext } from '@/contexts/CartContext';
 import { useSession } from 'next-auth/react';
+
+interface WishlistItem {
+  _id: string;
+}
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -39,7 +36,7 @@ export default function ProductDetailPage() {
   const { handleAddToCart } = useContext(CartContext);
 
   // Fetch single product
-  async function getSingleProduct() {
+  const getSingleProduct = useCallback(async () => {
     try {
       setLoading(true);
       const data: SingleProductResponse = await apiServices.getSingleProduct(
@@ -51,16 +48,20 @@ export default function ProductDetailPage() {
       if (sessionData?.token) {
         const wishlist = await apiServices.getAllWishList(sessionData.token);
         const exists = wishlist?.data?.some(
-          (item: any) => item._id === data.data._id
+          (item: WishlistItem) => item._id === data.data._id
         );
-        setInWishlist(exists);
+        setInWishlist(Boolean(exists));
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch product');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to fetch product');
+      }
     } finally {
       setLoading(false);
     }
-  }
+  }, [id, sessionData?.token]);
 
   // Toggle wishlist
   async function toggleWishlist() {
@@ -92,7 +93,7 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     getSingleProduct();
-  }, [id, sessionData?.token]);
+  }, [getSingleProduct]);
 
   if (loading) {
     return (

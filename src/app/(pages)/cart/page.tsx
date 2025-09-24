@@ -7,16 +7,19 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { LoadingSpinner } from '@/components';
+import { GetUserCartResponse } from '@/interfaces';
 
 export default function Cart() {
   const { data: session } = useSession();
-  const [cartData, setCartData] = useState<any>(null);
+  const [cartData, setCartData] = useState<GetUserCartResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCart() {
       if (!session?.token) return;
-      const response = await apiServices.getUserCart(session.token);
+      const response: GetUserCartResponse = await apiServices.getUserCart(
+        session.token
+      );
       setCartData(response);
       setLoading(false);
     }
@@ -39,7 +42,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="custom-container mx-auto px-4">
+    <div className="custom-container mx-auto px-4 py-10">
       <InnerCart cartData={cartData} />
     </div>
   );

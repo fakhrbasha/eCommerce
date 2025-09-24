@@ -1,21 +1,19 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useFormContext } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiServices } from '@/services/api';
 import toast from 'react-hot-toast';
@@ -39,9 +37,9 @@ export const formSchema = z
   });
 
 export default function Register() {
-  // ...
   const [isLoading, setIsLoading] = useState(false);
-  const form = useForm({
+
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
@@ -51,24 +49,33 @@ export default function Register() {
       phone: '',
     },
   });
+
   const router = useRouter();
-  async function onSubmit(values: any) {
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const phoneNumber = Number(values.phone);
     setIsLoading(true);
-    const response = await apiServices.register(
-      values.name,
-      values.email,
-      values.password,
-      values.rePassword,
-      values.phone
-    );
-    if (response.message == 'success') {
-      setIsLoading(false);
-      toast.success('Register Successful');
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 1000);
-    } else {
-      toast.error(response.message);
+    try {
+      const response = await apiServices.register(
+        values.name,
+        values.email,
+        values.password,
+        values.rePassword,
+        phoneNumber
+      );
+
+      if (response.message === 'success') {
+        toast.success('Register Successful');
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 1000);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Something went wrong');
+    } finally {
       setIsLoading(false);
     }
   }
@@ -92,6 +99,7 @@ export default function Register() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="email"
@@ -105,6 +113,7 @@ export default function Register() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="password"
@@ -118,12 +127,13 @@ export default function Register() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="rePassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>rePassword</FormLabel>
+                <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
                   <Input placeholder="**********" type="password" {...field} />
                 </FormControl>
@@ -131,6 +141,7 @@ export default function Register() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="phone"
@@ -140,7 +151,7 @@ export default function Register() {
                 <FormControl>
                   <Input
                     placeholder="Enter Your Phone"
-                    type="number"
+                    type="text"
                     {...field}
                   />
                 </FormControl>
@@ -148,6 +159,7 @@ export default function Register() {
               </FormItem>
             )}
           />
+
           <div className="flex flex-col md:flex-row gap-3">
             <Button
               disabled={isLoading}

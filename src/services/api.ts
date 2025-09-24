@@ -10,7 +10,23 @@ import {
     SingleCategoryResponse,
     SingleProductResponse,
 } from "@/types";
+export interface RemoveItemResponse {
+    status: string;
+    message: string;
+    data?: unknown;
+}
 
+export interface UpdateCartResponse {
+    status: string;
+    message: string;
+    numOfCartItems?: number;
+    data?: unknown;
+}
+
+export interface ClearCartResponse {
+    status: string;
+    message: string;
+}
 class ApiServices {
     #baseURL = "https://ecommerce.routemisr.com";
 
@@ -61,14 +77,14 @@ class ApiServices {
     async removeSpecificItem(
         id: string | string[],
         token: string
-    ): Promise<any> {
+    ): Promise<RemoveItemResponse> {
         return await fetch(this.#baseURL + `/api/v1/cart/${id}`, {
             method: "DELETE",
             headers: this.#getHeader(token),
         }).then((res) => res.json());
     }
 
-    async updateCartCount(id: string, count: number, token: string): Promise<any> {
+    async updateCartCount(id: string, count: number, token: string): Promise<UpdateCartResponse> {
         return await fetch(this.#baseURL + `/api/v1/cart/${id}`, {
             method: "PUT",
             body: JSON.stringify({ count }),
@@ -76,7 +92,7 @@ class ApiServices {
         }).then((res) => res.json());
     }
 
-    async clearCart(token: string): Promise<any> {
+    async clearCart(token: string): Promise<ClearCartResponse> {
         return await fetch(this.#baseURL + `/api/v1/cart`, {
             method: "DELETE",
             headers: this.#getHeader(token),
