@@ -27,7 +27,7 @@ export default function ImagesSliderDemo() {
         }}
         className="z-50 flex flex-col justify-center items-center"
       >
-        <motion.p>
+        <motion.p className="text-5xl text-white font-bold ">
           Let&apos;s go to shopping <br /> Shop Now
         </motion.p>
 

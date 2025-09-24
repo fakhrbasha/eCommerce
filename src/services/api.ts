@@ -34,7 +34,7 @@ class ApiServices {
 
     constructor() {
         this.#baseURL =
-            process.env.NEXTAUTH_URL || "https://ecommerce.routemisr.com";
+            process.env.NEXT_PUBLIC_API_BASE_URL || "https://ecommerce.routemisr.com";
     }
 
     // dynamic headers
