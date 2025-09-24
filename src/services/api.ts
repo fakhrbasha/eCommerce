@@ -32,12 +32,15 @@ export interface ClearCartResponse {
 class ApiServices {
     #baseURL: string;
 
+    // constructor() {
+    //     this.#baseURL =
+    //         // process.env.NEXT_PUBLIC_API_URL || "https://ecommerce.routemisr.com";
+    //         this.#baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://ecommerce.routemisr.com";
+
+
+    // }
     constructor() {
-        this.#baseURL =
-            // process.env.NEXT_PUBLIC_API_URL || "https://ecommerce.routemisr.com";
-            this.#baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://ecommerce.routemisr.com";
-
-
+        this.#baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://ecommerce.routemisr.com";
     }
 
     // dynamic headers
