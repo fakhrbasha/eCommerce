@@ -14,14 +14,12 @@ import {
 export interface RemoveItemResponse {
     status: string;
     message: string;
-    data?: any;
 }
 
 export interface UpdateCartResponse {
     status: string;
     message: string;
     numOfCartItems?: number;
-    data?: any;
 }
 
 export interface ClearCartResponse {
