@@ -14,14 +14,14 @@ import {
 export interface RemoveItemResponse {
     status: string;
     message: string;
-    data?: unknown;
+    data?: any;
 }
 
 export interface UpdateCartResponse {
     status: string;
     message: string;
     numOfCartItems?: number;
-    data?: unknown;
+    data?: any;
 }
 
 export interface ClearCartResponse {
@@ -150,11 +150,13 @@ class ApiServices {
         phone: string,
         details: string
     ) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
         return await fetch(
             this.#baseURL +
             "/api/v1/orders/checkout-session/" +
             cartId +
-            "?url=http://localhost:3000",
+            "?url=" + appUrl,
             {
                 method: "POST",
                 body: JSON.stringify({
@@ -209,7 +211,7 @@ class ApiServices {
         }).then((res) => res.json());
     }
 
-    async removeItemFormWishList(token: string, productId: string) {
+    async removeItemFromWishList(token: string, productId: string) {
         return await fetch(this.#baseURL + "/api/v1/wishlist/" + productId, {
             method: "DELETE",
             headers: this.#getHeader(token),
